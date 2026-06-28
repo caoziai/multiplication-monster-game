@@ -4,6 +4,12 @@ import { generateQuestion } from './QuestionGenerator.js';
 import { checkAnswer } from './GameEngine.js';
 import Monster from './Monster.jsx';
 import TeachingSection from './TeachingSection.jsx';
+import {
+  playAttackSound,
+  playMonsterDefeatSound,
+  playMonsterHitSound,
+  playWrongSound
+} from './SoundEngine.js';
 
 const MAX_HP = 12;
 
@@ -98,6 +104,14 @@ export default function App() {
     if (isCorrect) {
       const nextHp = monsterHp - 1;
       const nextCombo = combo + 1;
+      const isCritical = nextCombo >= 3;
+
+      playAttackSound(isCritical);
+      if (nextHp <= 0) {
+        playMonsterDefeatSound();
+      } else {
+        playMonsterHitSound();
+      }
 
       setCombo(nextCombo);
       setMessage(getComboMessage(nextCombo));
@@ -111,6 +125,7 @@ export default function App() {
     }
 
     const nextWrongQuestions = [...wrongQuestions, question];
+    playWrongSound();
     setCombo(0);
     setWrongQuestions(nextWrongQuestions);
     healMonster();

@@ -1,4 +1,7 @@
 let audioContext;
+let backgroundTimer;
+let backgroundMood = 'battle';
+let backgroundPlaying = false;
 
 function getAudioContext() {
   if (!audioContext) {
@@ -77,4 +80,75 @@ export function playMonsterDefeatSound() {
   playTone({ frequency: 660, duration: 0.12, type: 'triangle', volume: 0.11, start: 0.11 });
   playTone({ frequency: 880, duration: 0.18, type: 'triangle', volume: 0.12, start: 0.22 });
   playNoise({ duration: 0.28, volume: 0.05, start: 0.08 });
+}
+
+function playBackgroundPattern() {
+  if (backgroundMood === 'focus') {
+    playTone({ frequency: 262, duration: 0.18, type: 'triangle', volume: 0.026 });
+    playTone({ frequency: 330, duration: 0.18, type: 'triangle', volume: 0.022, start: 0.34 });
+    playTone({ frequency: 392, duration: 0.2, type: 'triangle', volume: 0.024, start: 0.68 });
+    playTone({ frequency: 330, duration: 0.18, type: 'triangle', volume: 0.02, start: 1.04 });
+    return 1500;
+  }
+
+  if (backgroundMood === 'combo') {
+    playTone({ frequency: 392, duration: 0.12, type: 'square', volume: 0.025 });
+    playTone({ frequency: 523, duration: 0.12, type: 'square', volume: 0.023, start: 0.22 });
+    playTone({ frequency: 659, duration: 0.16, type: 'square', volume: 0.024, start: 0.44 });
+    playTone({ frequency: 784, duration: 0.18, type: 'triangle', volume: 0.026, start: 0.74 });
+    return 1300;
+  }
+
+  if (backgroundMood === 'danger') {
+    playTone({ frequency: 146, duration: 0.2, type: 'sawtooth', volume: 0.024 });
+    playTone({ frequency: 138, duration: 0.2, type: 'sawtooth', volume: 0.022, start: 0.38 });
+    playTone({ frequency: 164, duration: 0.18, type: 'triangle', volume: 0.02, start: 0.76 });
+    return 1250;
+  }
+
+  if (backgroundMood === 'warning') {
+    playTone({ frequency: 196, duration: 0.12, type: 'sawtooth', volume: 0.026 });
+    playTone({ frequency: 147, duration: 0.18, type: 'sawtooth', volume: 0.024, start: 0.2 });
+    return 900;
+  }
+
+  if (backgroundMood === 'victory') {
+    playTone({ frequency: 523, duration: 0.16, type: 'triangle', volume: 0.03 });
+    playTone({ frequency: 659, duration: 0.16, type: 'triangle', volume: 0.03, start: 0.18 });
+    playTone({ frequency: 784, duration: 0.2, type: 'triangle', volume: 0.032, start: 0.36 });
+    playTone({ frequency: 1047, duration: 0.28, type: 'triangle', volume: 0.028, start: 0.6 });
+    return 1800;
+  }
+
+  playTone({ frequency: 220, duration: 0.16, type: 'triangle', volume: 0.022 });
+  playTone({ frequency: 277, duration: 0.16, type: 'triangle', volume: 0.02, start: 0.32 });
+  playTone({ frequency: 330, duration: 0.18, type: 'triangle', volume: 0.022, start: 0.64 });
+  playTone({ frequency: 277, duration: 0.16, type: 'triangle', volume: 0.018, start: 1.02 });
+  return 1550;
+}
+
+function scheduleBackgroundLoop() {
+  if (!backgroundPlaying) {
+    return;
+  }
+
+  const delay = playBackgroundPattern();
+  backgroundTimer = window.setTimeout(scheduleBackgroundLoop, delay);
+}
+
+export function startBackgroundMusic(mood = 'battle') {
+  backgroundMood = mood;
+  backgroundPlaying = true;
+  window.clearTimeout(backgroundTimer);
+  getAudioContext();
+  scheduleBackgroundLoop();
+}
+
+export function setBackgroundMusicMood(mood) {
+  backgroundMood = mood;
+}
+
+export function stopBackgroundMusic() {
+  backgroundPlaying = false;
+  window.clearTimeout(backgroundTimer);
 }

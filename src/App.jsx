@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { BookOpen, Flame, Swords, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { BookOpen, Flame, Swords, Volume2, VolumeX, X } from 'lucide-react';
 import { checkAnswer } from './GameEngine.js';
 import Monster from './Monster.jsx';
 import TeachingSection from './TeachingSection.jsx';
@@ -8,7 +8,10 @@ import {
   playAttackSound,
   playMonsterDefeatSound,
   playMonsterHitSound,
-  playWrongSound
+  playWrongSound,
+  setBackgroundMusicMood,
+  startBackgroundMusic,
+  stopBackgroundMusic
 } from './SoundEngine.js';
 
 const MAX_HP = 12;
@@ -68,7 +71,39 @@ export default function App() {
   const [feedback, setFeedback] = useState('');
   const [isDead, setIsDead] = useState(false);
   const [isTeachingOpen, setIsTeachingOpen] = useState(false);
+  const [isMusicOn, setIsMusicOn] = useState(false);
   const [attackKey, setAttackKey] = useState(0);
+
+  const musicMood = isDead
+    ? 'victory'
+    : feedback === 'wrong'
+      ? 'warning'
+      : monsterHp <= 3
+        ? 'danger'
+        : combo >= 3
+          ? 'combo'
+          : mode === 'fixed'
+            ? 'focus'
+            : 'battle';
+
+  useEffect(() => {
+    if (isMusicOn) {
+      setBackgroundMusicMood(musicMood);
+    }
+  }, [isMusicOn, musicMood]);
+
+  useEffect(() => stopBackgroundMusic, []);
+
+  function toggleMusic() {
+    if (isMusicOn) {
+      stopBackgroundMusic();
+      setIsMusicOn(false);
+      return;
+    }
+
+    startBackgroundMusic(musicMood);
+    setIsMusicOn(true);
+  }
 
   function rememberQuestion(nextQuestion) {
     setRecentKeys((keys) => {
@@ -198,15 +233,21 @@ export default function App() {
           <header className="battle-header">
             <p className="eyebrow">Battle Mode</p>
             <h1>乘法口诀打怪游戏 V3</h1>
-            <button
-              className="study-toggle"
-              type="button"
-              onClick={() => setIsTeachingOpen((isOpen) => !isOpen)}
-              aria-expanded={isTeachingOpen}
-            >
-              {isTeachingOpen ? <X size={18} /> : <BookOpen size={18} />}
-              {isTeachingOpen ? '收起口诀表' : '打开口诀表'}
-            </button>
+            <div className="header-actions">
+              <button
+                className="study-toggle"
+                type="button"
+                onClick={() => setIsTeachingOpen((isOpen) => !isOpen)}
+                aria-expanded={isTeachingOpen}
+              >
+                {isTeachingOpen ? <X size={18} /> : <BookOpen size={18} />}
+                {isTeachingOpen ? '收起口诀表' : '打开口诀表'}
+              </button>
+              <button className="music-toggle" type="button" onClick={toggleMusic}>
+                {isMusicOn ? <Volume2 size={18} /> : <VolumeX size={18} />}
+                {isMusicOn ? '音乐开' : '音乐关'}
+              </button>
+            </div>
           </header>
 
           <section className="practice-panel" aria-label="题型切换">

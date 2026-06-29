@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { BookOpen, Flame, Swords, X } from 'lucide-react';
-import { generateQuestion } from './QuestionGenerator.js';
 import { checkAnswer } from './GameEngine.js';
 import Monster from './Monster.jsx';
 import TeachingSection from './TeachingSection.jsx';
+import { generateQuestion, getAllQuestions } from './QuestionGenerator.js';
 import {
   playAttackSound,
   playMonsterDefeatSound,
@@ -12,32 +12,54 @@ import {
 } from './SoundEngine.js';
 
 const MAX_HP = 12;
+const RECENT_LIMIT = 10;
+const PRACTICE_NUMBERS = [2, 3, 4, 5, 6, 7, 8, 9];
+
+function getQuestionKey(question) {
+  return `${question.a}x${question.b}`;
+}
 
 function isSameQuestion(first, second) {
   return Boolean(first && second && first.a === second.a && first.b === second.b);
 }
 
-function getNextQuestion(wrongQuestions, currentQuestion) {
-  const reviewQuestions = wrongQuestions.filter(
-    (wrongQuestion) => !isSameQuestion(wrongQuestion, currentQuestion)
+function pickRandom(items) {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+function getNextQuestion({ wrongQuestions, currentQuestion, recentKeys, mode, fixedBase }) {
+  const activeBase = mode === 'fixed' ? fixedBase : null;
+  const candidates = getAllQuestions(activeBase);
+  const recentSet = new Set(recentKeys);
+  const freshCandidates = candidates.filter(
+    (candidate) => !recentSet.has(getQuestionKey(candidate)) && !isSameQuestion(candidate, currentQuestion)
   );
-  const shouldReview = reviewQuestions.length > 0 && Math.random() < 0.45;
+  const availableCandidates = freshCandidates.length > 0
+    ? freshCandidates
+    : candidates.filter((candidate) => !isSameQuestion(candidate, currentQuestion));
+
+  const reviewQuestions = wrongQuestions.filter((wrongQuestion) => {
+    const matchesMode = !activeBase || wrongQuestion.a === activeBase;
+    return (
+      matchesMode &&
+      !recentSet.has(getQuestionKey(wrongQuestion)) &&
+      !isSameQuestion(wrongQuestion, currentQuestion)
+    );
+  });
+  const shouldReview = reviewQuestions.length > 0 && Math.random() < 0.25;
 
   if (shouldReview) {
-    const index = Math.floor(Math.random() * reviewQuestions.length);
-    return reviewQuestions[index];
+    return pickRandom(reviewQuestions);
   }
 
-  let next = generateQuestion();
-  while (isSameQuestion(next, currentQuestion)) {
-    next = generateQuestion();
-  }
-
-  return next;
+  return pickRandom(availableCandidates.length > 0 ? availableCandidates : candidates);
 }
 
 export default function App() {
+  const [mode, setMode] = useState('random');
+  const [fixedBase, setFixedBase] = useState(2);
   const [question, setQuestion] = useState(() => generateQuestion());
+  const [recentKeys, setRecentKeys] = useState(() => [getQuestionKey(question)]);
   const [answerText, setAnswerText] = useState('');
   const [monsterHp, setMonsterHp] = useState(MAX_HP);
   const [message, setMessage] = useState('答对题目就能发射火球');
@@ -48,15 +70,50 @@ export default function App() {
   const [isTeachingOpen, setIsTeachingOpen] = useState(false);
   const [attackKey, setAttackKey] = useState(0);
 
+  function rememberQuestion(nextQuestion) {
+    setRecentKeys((keys) => {
+      const nextKeys = [...keys, getQuestionKey(nextQuestion)];
+      return nextKeys.slice(-RECENT_LIMIT);
+    });
+  }
+
   function resetFeedback(nextFeedback) {
     setFeedback('');
     setIsDead(false);
     requestAnimationFrame(() => setFeedback(nextFeedback));
   }
 
-  function nextQuestion(nextWrongQuestions = wrongQuestions) {
-    setQuestion((currentQuestion) => getNextQuestion(nextWrongQuestions, currentQuestion));
+  function nextQuestion(nextWrongQuestions = wrongQuestions, options = {}) {
+    const nextMode = options.mode ?? mode;
+    const nextFixedBase = options.fixedBase ?? fixedBase;
+
+    setQuestion((currentQuestion) => {
+      const pickedQuestion = getNextQuestion({
+        wrongQuestions: nextWrongQuestions,
+        currentQuestion,
+        recentKeys,
+        mode: nextMode,
+        fixedBase: nextFixedBase
+      });
+      rememberQuestion(pickedQuestion);
+      return pickedQuestion;
+    });
     setAnswerText('');
+  }
+
+  function switchToRandomMode() {
+    setMode('random');
+    setRecentKeys([]);
+    setMessage('随机练习：题目会尽量避开刚出现过的题');
+    nextQuestion(wrongQuestions, { mode: 'random' });
+  }
+
+  function switchToFixedMode(base) {
+    setMode('fixed');
+    setFixedBase(base);
+    setRecentKeys([]);
+    setMessage(`专项练习：现在只练 ${base} 的乘法`);
+    nextQuestion(wrongQuestions, { mode: 'fixed', fixedBase: base });
   }
 
   function damageMonster(nextHp) {
@@ -151,6 +208,40 @@ export default function App() {
               {isTeachingOpen ? '收起口诀表' : '打开口诀表'}
             </button>
           </header>
+
+          <section className="practice-panel" aria-label="题型切换">
+            <div className="practice-panel__top">
+              <div>
+                <p className="practice-title">题型切换</p>
+                <p className="practice-note">
+                  {mode === 'random'
+                    ? '随机练习：系统会避开最近出现过的题'
+                    : `专项练习：当前只出 ${fixedBase} 的乘法题`}
+                </p>
+              </div>
+              <button
+                className={`mode-button ${mode === 'random' ? 'mode-button--active' : ''}`}
+                type="button"
+                onClick={switchToRandomMode}
+              >
+                随机练习
+              </button>
+            </div>
+            <div className="series-buttons">
+              {PRACTICE_NUMBERS.map((number) => (
+                <button
+                  className={`series-button ${
+                    mode === 'fixed' && fixedBase === number ? 'series-button--active' : ''
+                  }`}
+                  type="button"
+                  key={number}
+                  onClick={() => switchToFixedMode(number)}
+                >
+                  {number} 的
+                </button>
+              ))}
+            </div>
+          </section>
 
           <div className="status-row">
             <div className="combo-box">

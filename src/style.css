@@ -123,6 +123,58 @@ button {
   margin-bottom: 14px;
 }
 
+.practice-panel {
+  margin-bottom: 14px;
+  padding: 12px;
+  border: 3px solid #1f2a3d;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.practice-panel__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.practice-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.practice-note {
+  margin: 4px 0 0;
+  color: #40516a;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.mode-button,
+.series-button {
+  min-height: 38px;
+  padding: 0 12px;
+  border-width: 2px;
+  background: #f7fbff;
+  box-shadow: 0 3px 0 #1f2a3d;
+  white-space: nowrap;
+}
+
+.mode-button--active,
+.series-button--active {
+  background: #ffe27a;
+  color: #1f2a3d;
+}
+
+.series-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
 .combo-box {
   min-height: 60px;
   display: flex;
@@ -628,8 +680,17 @@ button:active {
 
   .status-row,
   .answer-row,
-  .formula-groups {
+  .formula-groups,
+  .practice-panel__top {
     grid-template-columns: 1fr;
+  }
+
+  .practice-panel__top {
+    display: grid;
+  }
+
+  .series-buttons {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .formula-item {

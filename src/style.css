@@ -293,7 +293,7 @@ button {
 }
 
 .monster-card--dead .monster-image {
-  animation: monster-vanish 520ms ease forwards;
+  animation: monster-defeated 720ms ease forwards;
 }
 
 .monster-card--smirk .monster-image {
@@ -664,15 +664,23 @@ button:active {
   }
 }
 
-@keyframes monster-vanish {
+@keyframes monster-defeated {
   0% {
     opacity: 1;
-    transform: scale(1) rotate(0);
+    transform: translateY(-6px) scale(0.96) rotate(-4deg);
+    filter: drop-shadow(0 12px 12px rgba(31, 42, 61, 0.2)) saturate(1);
+  }
+
+  45% {
+    opacity: 1;
+    transform: translateY(6px) scale(1.02) rotate(2deg);
+    filter: drop-shadow(0 14px 12px rgba(31, 42, 61, 0.24)) saturate(0.85);
   }
 
   100% {
-    opacity: 0;
-    transform: scale(0.2) rotate(12deg);
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(0);
+    filter: drop-shadow(0 12px 12px rgba(31, 42, 61, 0.2)) saturate(0.75);
   }
 }
 

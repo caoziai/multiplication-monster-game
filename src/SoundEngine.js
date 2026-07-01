@@ -140,6 +140,18 @@ export function playMonsterDefeatSound() {
   playNoise({ duration: 0.28, volume: 0.05, start: 0.08 });
 }
 
+export function playVictoryMusic() {
+  playChord([NOTES.c4, NOTES.e4, NOTES.g4], 0, 0.03);
+  playBell(NOTES.c5, 0.04, 0.04);
+  playBell(NOTES.e5, 0.24, 0.04);
+  playBell(NOTES.g5, 0.44, 0.04);
+  playBell(NOTES.c6, 0.72, 0.042);
+  playChord([NOTES.f4, NOTES.a4, NOTES.c5], 1.02, 0.026);
+  playBell(NOTES.a5, 1.08, 0.032);
+  playBell(NOTES.g5, 1.3, 0.03);
+  playBell(NOTES.c6, 1.58, 0.036);
+}
+
 function playBackgroundPattern() {
   if (backgroundMood === 'focus') {
     const patterns = [

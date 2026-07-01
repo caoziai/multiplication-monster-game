@@ -8,6 +8,7 @@ import {
   playAttackSound,
   playMonsterDefeatSound,
   playMonsterHitSound,
+  playVictoryMusic,
   playWrongSound,
   setBackgroundMusicMood,
   startBackgroundMusic,
@@ -160,7 +161,7 @@ export default function App() {
         setMonsterHp(MAX_HP);
         setIsDead(false);
         nextQuestion(wrongQuestions);
-      }, 520);
+      }, 2200);
       return;
     }
 
@@ -201,6 +202,10 @@ export default function App() {
       playAttackSound(isCritical);
       if (nextHp <= 0) {
         playMonsterDefeatSound();
+        playVictoryMusic();
+        if (isMusicOn) {
+          setBackgroundMusicMood('victory');
+        }
       } else {
         playMonsterHitSound();
       }

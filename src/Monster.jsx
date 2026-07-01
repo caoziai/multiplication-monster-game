@@ -36,11 +36,12 @@ function getMonsterImage(mood, isDead) {
 }
 
 export default function Monster({ hp, maxHp, mood, isDead }) {
-  const monsterImage = getMonsterImage(mood, isDead);
+  const isDefeated = isDead || hp <= 0;
+  const monsterImage = getMonsterImage(mood, isDefeated);
   const cells = Array.from({ length: maxHp }, (_, index) => index < hp);
 
   return (
-    <section className={`monster-card ${getMoodClass(mood, isDead)}`}>
+    <section className={`monster-card ${getMoodClass(mood, isDefeated)}`}>
       <div className="monster-scene">
         <div className="monster-shadow" />
         <img className="monster-image" src={monsterImage} alt="乘法怪兽" />
